@@ -219,8 +219,9 @@ typedef struct __attribute__ ((__packed__)) _FATFS_BOOT_DATA {
 } FATFS_BootData_t;
 
 /** Define FAT sector*/
-/* GENERICric */
-#define FATFS_BYTE_OF_ENTRY 32U
+/* GENERIC */
+#define FATFS_BYTES_OF_ENTRY 32U
+#define FATFS_ENTRYS_OF_SECTOR (16U)
 /* FAT12 */
 #define FATFS_12_EOC 0xFFF /* Entry end of chain for directory or file in FAT12 */
 
@@ -352,7 +353,7 @@ typedef enum _FATFS_TYPES
     FAT32 = 2U
 } FATFS_FatTypes_t;
 
-
+#define FATFS_CAL_SECTOR_INDEX(x)   ((x) >> 4U) /* Calculate index sector of root directory */
 
 /*** Function Prototype */
 /* This function is read FAT files */

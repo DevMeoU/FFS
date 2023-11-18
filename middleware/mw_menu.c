@@ -41,16 +41,16 @@ int32_t APPMIDW_MenuInit(const char *const filePath)
 #if 0
     CLS
     TITLE_MENU
-    Node * DataIndicate = NodeData;
+    // DataIndicate = NodeData;
     Node * Element = NULL;
     Node * Temp = NULL;
     /* print Node root */
-    while(DataIndicate != NULL)
+    do
     {
-        APPMIDW_MenuInfo(* DataIndicate);
+        APPMIDW_MenuInfo(* NodeData);
         maxNode++;
-        DataIndicate = DataIndicate->next;
-    }
+        NodeData = NodeData->next;
+    } while(NodeData != NULL);
     inputUser = maxNode;
     Element = NodeData;
     while(1)

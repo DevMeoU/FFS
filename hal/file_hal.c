@@ -41,7 +41,7 @@ int32_t HAL_DeInit(void)
 int32_t HAL_ReadSector(uint32_t index, uint8_t * buff)
 {
     int32_t retVal = -1; /* -1 is ERROR value */
-    index *= 512;
+    index <<= 9;
     rewind(g_fp);
     
     if (g_fp != NULL)

@@ -7,6 +7,6 @@ int main(int argc, char ** argv)
 {
 	printf("Start...\n");
 	APPMIDW_MenuInit(argv[1]);
-	// APPMIDW_MenuInit("floppyff.img");
+	// APPMIDW_MenuInit("floppy.img");
 	return 0;
 }
