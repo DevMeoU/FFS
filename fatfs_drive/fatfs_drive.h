@@ -8,6 +8,12 @@
  * BS  => "BOOT sector"
  * BPB => "BIOS Parameter Block"
  */
+/* Generic definition */
+#define FATFS_ON                                        1U
+#define FATFS_OFF                                       0U
+#define FATFS_DEBUG_MODE                                FATFS_OFF
+#define FATFS_BYTES_PER_SECTOR                          512U
+
 /*** Boot Sector ***/
 #define FATFS_NUMBER_OF_BOOT_SECTORS                    1U
 #define FATFS_MAX_CLUSTER_OF_FATFS_12                   4085U
@@ -100,8 +106,8 @@
 #define FATFS_32_BS_BOOT_CODE_LEN                       420U
 #define FATFS_32_BS_BOOT_SIGN_LEN                       2U
 
-/* Define Struct FAT12/16 Boot Format Sector*/
-typedef struct _FATFS_12_16_BOOT
+/* Define struct __attribute__ ((__packed__)) FAT12/16 Boot Format Sector*/
+typedef struct __attribute__ ((__packed__)) _FATFS_12_16_BOOT
 {
     uint8_t BS_JmpBoot[FATFS_GENERIC_BS_JMP_BOOT_LEN];                  /* 0-2 code to jump to bootstrap */
     uint8_t BS_OEMName[FATFS_GENERIC_BS_OEM_NAME_LEN];                  /* 3-10 OEM name/ version */
@@ -127,8 +133,8 @@ typedef struct _FATFS_12_16_BOOT
     uint8_t BS_BootSign[FATFS_12_16_BS_BOOT_SIGN_LEN];                  /* 510-511 signature 0x55 0xaa*/
 } FATFS_BootFormat126_t;
 
-/* Define Struct FAT32 Boot Sector */
-typedef struct _FAT32_BOOT
+/* Define struct __attribute__ ((__packed__)) FAT32 Boot Sector */
+typedef struct __attribute__ ((__packed__)) _FAT32_BOOT
 {
     uint8_t BS_JmpBoot[FATFS_GENERIC_BS_JMP_BOOT_LEN];                /* 0-2 code to jump to bootstrap */
     uint8_t BS_OEMName[FATFS_GENERIC_BS_OEM_NAME_LEN];                /* 3-10 OEM name/ version */
@@ -162,8 +168,8 @@ typedef struct _FAT32_BOOT
 } FATFS_BootFormat32_t;
 
 
-/* Define Struct FAT12/16 Boot Data Sector*/
-typedef struct _FATFS_12_16_BOOT_DATA
+/* Define struct __attribute__ ((__packed__)) FAT12/16 Boot Data Sector*/
+typedef struct __attribute__ ((__packed__)) _FATFS_12_16_BOOT_DATA
 {
     uint32_t u32_FirstRootClus;
     uint32_t u32_FirstDataClus;
@@ -180,8 +186,8 @@ typedef struct _FATFS_12_16_BOOT_DATA
     uint8_t  u8_FatNum;         /* 36 Physical FATFSe number*/
 } FATFS_BootData126_t;
 
-/* Define Struct FAT12/16 Boot Data Sector*/
-typedef struct _FATFS_32_BOOT_DATA
+/* Define struct __attribute__ ((__packed__)) FAT12/16 Boot Data Sector*/
+typedef struct __attribute__ ((__packed__)) _FATFS_32_BOOT_DATA
 {
     uint32_t u32_FirstRootClus;
     uint32_t u32_FirstDataClus;
@@ -197,8 +203,8 @@ typedef struct _FATFS_32_BOOT_DATA
     uint8_t  u8_FatNum;         /* 36 Physical FATFSe number*/
 } FATFS_BootData32_t;
 
-/* Define Struct FAT12/16 Boot Data Sector*/
-typedef struct _FATFS_BOOT_DATA {
+/* Define struct __attribute__ ((__packed__)) FAT12/16 Boot Data Sector*/
+typedef struct __attribute__ ((__packed__)) _FATFS_BOOT_DATA {
     uint32_t FirstRootClus;
 	uint32_t FirstDataClus;
 	uint32_t RootDirSector;
@@ -236,10 +242,10 @@ typedef struct _FATFS_BOOT_DATA {
 #define DIR_FST_CLUS_LOW_LEN                        2U
 #define DIR_FILE_SIZE_LEN                           4U
 
-/* Define Struct Entry Format */
+/* Define struct __attribute__ ((__packed__)) Entry Format */
 #define DIR_NUMBER_OF_BYTES_PER_ENTRY               32U
 
-typedef struct _ENTRY_FORMAT
+typedef struct __attribute__ ((__packed__)) _ENTRY_FORMAT
 {
     uint8_t DIR_Name[DIR_NAME_LEN];                   /* 0-7   file name */
     uint8_t DIR_Ext[DIR_EXTENTION_LEN];               /* 8-10  file name extension */
@@ -279,8 +285,8 @@ typedef struct _ENTRY_FORMAT
 #define LFN_RESERVED_2              2U
 #define LFN_FILE_NAME_3             4U
 
-/* Structure for LFN Entries format */
-typedef struct _LFN_STRUCT
+/* struct __attribute__ ((__packed__))ure for LFN Entries format */
+typedef struct __attribute__ ((__packed__)) _LFN_struct
 {
     uint8_t LFN_sequenceNum[LFN_SEQUENCE_NUMBER];    /* 0    Sequence number and allocation status */
     uint8_t LFN_fileName1[LFN_FILE_NAME_1];          /* 1-10 File name characters(uincode) */
@@ -292,8 +298,8 @@ typedef struct _LFN_STRUCT
     uint8_t LFN_fileName3[LFN_FILE_NAME_3];          /* */
 } FATFS_LFNtypes_t;
 
-/* Structure for name of file type LFN*/
-typedef struct _LFN_NAME
+/* struct __attribute__ ((__packed__))ure for name of file type LFN*/
+typedef struct __attribute__ ((__packed__)) _LFN_NAME
 {
     uint8_t filename1;
     uint8_t filename2;
@@ -341,9 +347,9 @@ typedef struct _LFN_NAME
 typedef enum _FATFS_TYPES
 {
     ERROR = -1,
-    FAT12 = 0,
-    FAT16,
-    FAT32
+    FAT12 = 0U,
+    FAT16 = 1U,
+    FAT32 = 2U
 } FATFS_FatTypes_t;
 
 

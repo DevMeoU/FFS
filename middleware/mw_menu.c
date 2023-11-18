@@ -35,21 +35,21 @@ int32_t APPMIDW_MenuInit(const char *const filePath)
 
     returnValue = FATFS_InitFile();
     APPMIDW_Assert(returnValue, NULL, NULL);
-#if 0
     MAIN_RT:
     Node * NodeData = NULL;
     FATFS_readDirectory(&NodeData, true);
+#if 0
     CLS
     TITLE_MENU
-    Node * PrintData = NodeData;
+    Node * DataIndicate = NodeData;
     Node * Element = NULL;
     Node * Temp = NULL;
     /* print Node root */
-    while(PrintData != NULL)
+    while(DataIndicate != NULL)
     {
-        APPMIDW_MenuInfo(* PrintData);
+        APPMIDW_MenuInfo(* DataIndicate);
         maxNode++;
-        PrintData = PrintData->next;
+        DataIndicate = DataIndicate->next;
     }
     inputUser = maxNode;
     Element = NodeData;
@@ -136,31 +136,31 @@ static int32_t APPMIDW_MenuReadSubDir(Node *NodeData)
 {
     int32_t InputUser = 0;
     Node *Element = NodeData;
-    Node *PrintData = NULL;
+    Node *DataIndicate = NULL;
     Element->next = NULL;                 /* Entry Root */
     FATFS_readDirectory(&Element, false); /* read entry subDir */
     if ((Element->data.DATA_SubDir == 2) && (Element->next->data.DATA_SubDir == 1))
     {
         Element = Element->next->next;
     }
-    PrintData = Element;
+    DataIndicate = Element;
     /* print sub entry info */
     CLS
-        TITLE_MENU while (PrintData != NULL)
+        TITLE_MENU while (DataIndicate != NULL)
     {
-        if (PrintData->data.DATA_SubDir == 2)
+        if (DataIndicate->data.DATA_SubDir == 2)
         {
 
-            while ((PrintData != NULL) && (PrintData->data.DATA_SubDir != 1))
+            while ((DataIndicate != NULL) && (DataIndicate->data.DATA_SubDir != 1))
             {
-                APPMIDW_MenuInfo(*PrintData);
+                APPMIDW_MenuInfo(*DataIndicate);
                 InputUser++;
-                PrintData = PrintData->next;
+                DataIndicate = DataIndicate->next;
             }
         }
         else
         {
-            PrintData = PrintData->next;
+            DataIndicate = DataIndicate->next;
         }
     }
     return InputUser;
