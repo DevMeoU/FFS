@@ -11,9 +11,9 @@
 /* This Funtion is read content of SubDirectory */
 static int32_t APPMIDW_MenuReadSubDir(Node *NodeData);
 /* This Funtion is initilize menu */
-static int32_t APPMIDW_MenuReadFile(Node *NodeData, uint32_t *InputUser);
+static int32_t APPMIDW_MenuReadFile(LIST_Data_t * DataList, uint32_t * InputUser);
 /* This Funtion is print data */
-static int32_t APPMIDW_MenuInfo(Node printList);
+static int32_t APPMIDW_MenuInfo(LIST_Data_t DataList, bool isRoot);
 /* This function is to check the number inputed by user
 The number is a positive integer from 0 to maxNumber */
 static uint32_t APPMIDW_MenuInputNumberByUser(uint32_t maxNumber);
@@ -28,29 +28,55 @@ int32_t APPMIDW_MenuInit(const char *const filePath)
     uint32_t maxNode = 0;
     uint32_t inputUserFile = 0;
     uint32_t temp;
+    uint32_t numOfRootDataEntry = 0U;
     bool readFile = false;
+    Node * NodePath = NULL;
+    Node * RootDataPath = NULL;
+    LIST_Data_t RootDataList[100][100];
 
     returnValue = HAL_FileInit(filePath);
     APPMIDW_Assert(returnValue, "File initilization fail.", "File initilization success.");
 
     returnValue = FATFS_InitFile();
     APPMIDW_Assert(returnValue, NULL, NULL);
-    MAIN_RT:
-    Node * NodeData = NULL;
-    FATFS_readDirectory(&NodeData, true);
-#if 0
+MAIN_RT:
+
+    FATFS_readDirectory(* RootDataList, &numOfRootDataEntry, true);
+    Link_addLastNode(&RootDataPath, RootDataList[0]);
     CLS
     TITLE_MENU
-    // DataIndicate = NodeData;
-    Node * Element = NULL;
-    Node * Temp = NULL;
+
+    for(i = 0; i < numOfRootDataEntry; i++) {
+        APPMIDW_MenuInfo(RootDataList[0][i], true);
+    }
+
+    while (1)
+    {
+        inputUser = numOfRootDataEntry;
+        inputUser = APPMIDW_MenuInputNumberByUser(inputUser);
+
+        if((RootDataList[0][inputUser].DATA_Attr == ATT_DIRECTORY) && (RootDataList[0][inputUser].DATA_SubDir == 0))
+        {
+            // APPMIDW_MenuReadSubDir
+        }
+        else if((RootDataList[0][inputUser].DATA_Attr != ATT_DIRECTORY) && (RootDataList[0][inputUser].DATA_SubDir == 0))
+        {
+            APPMIDW_MenuReadFile(RootDataList[0], &inputUser);
+        }
+        // FATFS_readDirectory(* RootDataList, &numOfRootDataEntry, false);
+    }
+
+#if 0
+            // DataIndicate = NodeData;
+    // Node *Element = NULL;
+    // Node *Temp = NULL;
     /* print Node root */
     do
     {
-        APPMIDW_MenuInfo(* NodeData);
+        APPMIDW_MenuInfo(NULL, RootDataList, true);
         maxNode++;
-        NodeData = NodeData->next;
-    } while(NodeData != NULL);
+        RootData = RootData->next;
+    } while (RootData != NULL);
     inputUser = maxNode;
     Element = NodeData;
     while(1)
@@ -138,8 +164,8 @@ static int32_t APPMIDW_MenuReadSubDir(Node *NodeData)
     Node *Element = NodeData;
     Node *DataIndicate = NULL;
     Element->next = NULL;                 /* Entry Root */
-    FATFS_readDirectory(&Element, false); /* read entry subDir */
-    if ((Element->data.DATA_SubDir == 2) && (Element->next->data.DATA_SubDir == 1))
+    // FATFS_readDirectory(&Element, false); /* read entry subDir */
+    if ((Element->data->DATA_SubDir == 2) && (Element->next->data->DATA_SubDir == 1))
     {
         Element = Element->next->next;
     }
@@ -148,12 +174,12 @@ static int32_t APPMIDW_MenuReadSubDir(Node *NodeData)
     CLS
         TITLE_MENU while (DataIndicate != NULL)
     {
-        if (DataIndicate->data.DATA_SubDir == 2)
+        if (DataIndicate->data->DATA_SubDir == 2)
         {
 
-            while ((DataIndicate != NULL) && (DataIndicate->data.DATA_SubDir != 1))
+            while ((DataIndicate != NULL) && (DataIndicate->data->DATA_SubDir != 1))
             {
-                APPMIDW_MenuInfo(*DataIndicate);
+                // APPMIDW_MenuInfo(*DataIndicate);
                 InputUser++;
                 DataIndicate = DataIndicate->next;
             }
@@ -166,108 +192,193 @@ static int32_t APPMIDW_MenuReadSubDir(Node *NodeData)
     return InputUser;
 }
 
-static int32_t APPMIDW_MenuReadFile(Node *NodeData, uint32_t *InputUser)
+static int32_t APPMIDW_MenuReadFile(LIST_Data_t * DataList, uint32_t * InputUser)
 {
     int32_t retVal = 0;
     uint32_t NextClus = 0;
     uint8_t text[512];
-    Node *Element = NodeData;
-    Element->next = NULL; /* Entry Root */
     CLS
-        NextClus = Element->data.DATA_FstClusLO;
+        NextClus = DataList->DATA_FstClusLO;
     do
     {
         NextClus = FATFS_readFile(text, NextClus);
         for (int i = 0; i < sizeof(text); i++)
             printf("%c", text[i]);
+        printf("FATFS_readFile(text, NextClus): %d\n", FATFS_readFile(text, NextClus));
     } while (FATFS_readFile(text, NextClus) != -1);
     return retVal;
 }
 
-static int32_t APPMIDW_MenuInfo(Node printList)
+static int32_t APPMIDW_MenuInfo(LIST_Data_t DataList, bool isRoot)
 {
     int32_t retVal = 0;
     uint32_t i = 0;
-    if (printList.data.DATA_SubDir == 1)
+
+    if (isRoot == true)
     {
-        __TAB(4)
-        printf("| %02d |", printList.data.DATA_Num);
-        __TAB(4)
-        printf(" .");
-        __TAB(4)
-        TAB printf("|");
-        __TAB(9)
-        TAB printf("|");
-        __TAB(9)
-        TAB printf("|");
-        __TAB(9)
-        TAB printf("|");
-        __TAB(11)
-        TAB printf("|");
-        __TAB(12)
-        printf("|");
-        NEWLINE __LINE
-    }
-    else if (printList.data.DATA_SubDir == 2)
-    {
-        __TAB(4)
-        printf("| %02d |", printList.data.DATA_Num);
-        __TAB(4)
-        printf("..");
-        __TAB(4)
-        TAB printf("|");
-        __TAB(9)
-        TAB printf("|");
-        __TAB(9)
-        TAB printf("|");
-        __TAB(9)
-        TAB printf("|");
-        __TAB(11)
-        TAB printf("|");
-        __TAB(12)
-        printf("|");
-        NEWLINE __LINE
-    }
-    else
-    {
-        __TAB(4)
-        printf("| %02d |", printList.data.DATA_Num);
-        TAB for (i = 0; i < 8; i++)
-            printf(" %c", printList.data.DATA_FileName[i]);
-        TAB printf("|");
-        __TAB(4)
-        for (i = 0; i < 3; i++)
-            printf(" %c", printList.data.DATA_Ext[i]);
-        __TAB(3)
-        printf("|");
-        if (printList.data.DATA_Attr == ATT_DIRECTORY)
+        if (DataList.DATA_SubDir == 1)
         {
-            __TAB(2)
-            printf(" File folder");
-            __TAB(2)
+            __TAB(4)
+            printf("| %02d |", DataList.DATA_Num);
+            __TAB(4)
+            printf(" .");
+            __TAB(4)
+            TAB printf("|");
+            __TAB(9)
+            TAB printf("|");
+            __TAB(9)
+            TAB printf("|");
+            __TAB(9)
+            TAB printf("|");
+            __TAB(11)
+            TAB printf("|");
+            __TAB(12)
             printf("|");
+            NEWLINE __LINE
+        }
+        else if (DataList.DATA_SubDir == 2)
+        {
+            __TAB(4)
+            printf("| %02d |", DataList.DATA_Num);
+            __TAB(4)
+            printf("..");
+            __TAB(4)
+            TAB printf("|");
+            __TAB(9)
+            TAB printf("|");
+            __TAB(9)
+            TAB printf("|");
+            __TAB(9)
+            TAB printf("|");
+            __TAB(11)
+            TAB printf("|");
+            __TAB(12)
+            printf("|");
+            NEWLINE __LINE
         }
         else
         {
             __TAB(4)
-            printf("File");
+            printf("| %02d |", DataList.DATA_Num);
+            TAB for (i = 0; i < 8; i++)
+                printf(" %c", DataList.DATA_FileName[i]);
+            TAB printf("|");
+            __TAB(4)
+            for (i = 0; i < 3; i++)
+                printf(" %c", DataList.DATA_Ext[i]);
+            __TAB(3)
+            printf("|");
+            if (DataList.DATA_Attr == ATT_DIRECTORY)
+            {
+                __TAB(2)
+                printf(" File folder");
+                __TAB(2)
+                printf("|");
+            }
+            else
+            {
+                __TAB(4)
+                printf("File");
+                __TAB(4)
+                printf("|");
+            }
+            __TAB(3)
+            printf("%06dB ", DataList.DATA_FileSize);
+            __TAB(3)
+            printf("|");
+            __TAB(3)
+            printf(" %02d:%02d:%02d ", DataList.DATA_CrtDate, DataList.DATA_CrtMonth, DataList.DATA_CrtYear);
+            __TAB(3)
+            printf("|");
+            __TAB(4)
+            printf("%02d:%02d:%02d", DataList.DATA_CrtHour, DataList.DATA_CrtMin, DataList.DATA_CrtSec);
             __TAB(4)
             printf("|");
+            NEWLINE __LINE
         }
-        __TAB(3)
-        printf("%06dB ", printList.data.DATA_FileSize);
-        __TAB(3)
-        printf("|");
-        __TAB(3)
-        printf(" %02d:%02d:%02d ", printList.data.DATA_CrtDate, printList.data.DATA_CrtMonth, printList.data.DATA_CrtYear);
-        __TAB(3)
-        printf("|");
-        __TAB(4)
-        printf("%02d:%02d:%02d", printList.data.DATA_CrtHour, printList.data.DATA_CrtMin, printList.data.DATA_CrtSec);
-        __TAB(4)
-        printf("|");
-        NEWLINE __LINE
+        return retVal;
     }
+
+    // if (printList.data.DATA_SubDir == 1)
+    // {
+    //     __TAB(4)
+    //     printf("| %02d |", printList.data.DATA_Num);
+    //     __TAB(4)
+    //     printf(" .");
+    //     __TAB(4)
+    //     TAB printf("|");
+    //     __TAB(9)
+    //     TAB printf("|");
+    //     __TAB(9)
+    //     TAB printf("|");
+    //     __TAB(9)
+    //     TAB printf("|");
+    //     __TAB(11)
+    //     TAB printf("|");
+    //     __TAB(12)
+    //     printf("|");
+    //     NEWLINE __LINE
+    // }
+    // else if (printList.data.DATA_SubDir == 2)
+    // {
+    //     __TAB(4)
+    //     printf("| %02d |", printList.data.DATA_Num);
+    //     __TAB(4)
+    //     printf("..");
+    //     __TAB(4)
+    //     TAB printf("|");
+    //     __TAB(9)
+    //     TAB printf("|");
+    //     __TAB(9)
+    //     TAB printf("|");
+    //     __TAB(9)
+    //     TAB printf("|");
+    //     __TAB(11)
+    //     TAB printf("|");
+    //     __TAB(12)
+    //     printf("|");
+    //     NEWLINE __LINE
+    // }
+    // else
+    // {
+    //     __TAB(4)
+    //     printf("| %02d |", printList.data.DATA_Num);
+    //     TAB for (i = 0; i < 8; i++)
+    //         printf(" %c", printList.data.DATA_FileName[i]);
+    //     TAB printf("|");
+    //     __TAB(4)
+    //     for (i = 0; i < 3; i++)
+    //         printf(" %c", printList.data.DATA_Ext[i]);
+    //     __TAB(3)
+    //     printf("|");
+    //     if (printList.data.DATA_Attr == ATT_DIRECTORY)
+    //     {
+    //         __TAB(2)
+    //         printf(" File folder");
+    //         __TAB(2)
+    //         printf("|");
+    //     }
+    //     else
+    //     {
+    //         __TAB(4)
+    //         printf("File");
+    //         __TAB(4)
+    //         printf("|");
+    //     }
+    //     __TAB(3)
+    //     printf("%06dB ", printList.data.DATA_FileSize);
+    //     __TAB(3)
+    //     printf("|");
+    //     __TAB(3)
+    //     printf(" %02d:%02d:%02d ", printList.data.DATA_CrtDate, printList.data.DATA_CrtMonth, printList.data.DATA_CrtYear);
+    //     __TAB(3)
+    //     printf("|");
+    //     __TAB(4)
+    //     printf("%02d:%02d:%02d", printList.data.DATA_CrtHour, printList.data.DATA_CrtMin, printList.data.DATA_CrtSec);
+    //     __TAB(4)
+    //     printf("|");
+    //     NEWLINE __LINE
+    // }
     return retVal;
 }
 
@@ -278,9 +389,11 @@ static uint32_t APPMIDW_MenuInputNumberByUser(uint32_t maxNumber)
     uint32_t number = 0;
     do
     {
-        printf("\n\n\tPlease input your Select from keyboard: ");
+        printf("\n\n\t\"Note: Input '0' to exit.\"");
+        printf("\n\tPlease input your Select from keyboard: ");
         fflush(stdin);
         scanf("%d", &number);
     } while ((number < 0) || (number > maxNumber));
-    return number;
+    if(number == 0){exit;};
+    return number - 1;
 }

@@ -359,7 +359,7 @@ typedef enum _FATFS_TYPES
 /* This function is read FAT files */
 int32_t FATFS_InitFile();
 /* This function is read directory entry*/
-int32_t FATFS_readDirectory(Node ** NodeData, bool isRoot);
+int32_t FATFS_readDirectory(LIST_Data_t * ListData, uint32_t * numOfEntryData, bool isRoot);
 /* This function is to read a file in FAT12 files */
 int32_t FATFS_readFile(uint8_t * buff, uint32_t entryOfCLuster);
 

@@ -24,7 +24,7 @@ typedef struct DATA
 
 /** Struct */
 typedef struct Node{
-    LIST_Data_t data;
+    LIST_Data_t * data;
     struct Node * next;
 } Node;
 
@@ -35,7 +35,7 @@ typedef struct {
 
 /** Function Prototype */
 /* This function is to add an element to the last position of linked list */
-void Link_addLastNode(Node ** headNode, LIST_Data_t newData);
+void Link_addLastNode(Node ** headNode, LIST_Data_t * newData);
 /* This function is to find an element to the last position of linked list */
 int32_t Link_findNode(Node * phead, uint32_t index);
 /* This function is to delete the last element of linked list */
