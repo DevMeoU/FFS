@@ -7,10 +7,10 @@
 
 
 /* This function is to add an element to the last position of linked list */
-void Link_addLastNode(Node ** headNode, LIST_Data_t * newData){
+void Link_addLastNode(Node ** headNode, uint32_t * newData){
     /* 1. allocate node */
 	Node * newNode = (Node *)malloc(sizeof(Node));
-	Node * lastNode = * headNode;  /* used in step 5*/
+	Node * lastNode = headNode;  /* used in step 5*/
 	
 	/* 2. put in the data  */
     newNode->data  = newData;
@@ -38,7 +38,7 @@ int32_t Link_findNode(Node * phead, uint32_t index)
 {
     int32_t retVal = 0;
     while (phead != NULL) {
-        if (phead->data->DATA_Num == index)
+        if (phead->data == index)
         {
             return retVal;
         }    

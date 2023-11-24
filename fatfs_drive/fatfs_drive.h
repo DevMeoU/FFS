@@ -220,8 +220,9 @@ typedef struct __attribute__ ((__packed__)) _FATFS_BOOT_DATA {
 
 /** Define FAT sector*/
 /* GENERIC */
-#define FATFS_BYTES_OF_ENTRY 32U
-#define FATFS_ENTRYS_OF_SECTOR (16U)
+#define FATFS_BYTES_OF_ENTRY                        (32U)
+#define FATFS_ENTRYS_OF_SECTOR                      (16U)
+#define FATFS_GET_INDEX_ENTRYS(index)               ((index) & 0x0FU)
 /* FAT12 */
 #define FATFS_12_EOC 0xFFF /* Entry end of chain for directory or file in FAT12 */
 
@@ -229,38 +230,49 @@ typedef struct __attribute__ ((__packed__)) _FATFS_BOOT_DATA {
 #define FATFS_16_EOC 0xFFFF /* Entry end of chain for directory or file in FAT16 */
 
 /** Define Root Directory */
-#define DIR_NAME_LEN                                8U
-#define DIR_EXTENTION_LEN                           3U
-#define DIR_ATTRIBUTES_LEN                          1U
-#define DIR_NTRES_LEN                               1U
-#define DIR_CRT_TIME_TENTH_LEN                      1U
-#define DIR_CRT_TIME_LEN                            2U
-#define DIR_CRT_DATE_LEN                            2U
-#define DIR_LST_ACC_DATE_LEN                        2U
-#define DIR_FST_CLUS_HIGH_LEN                       2U
-#define DIR_WRT_TIME_LEN                            2U
-#define DIR_WRT_DATE_LEN                            2U
-#define DIR_FST_CLUS_LOW_LEN                        2U
-#define DIR_FILE_SIZE_LEN                           4U
+#define DIR_NAME_LEN                                (0x8U)
+#define DIR_EXTENTION_LEN                           (0x3U)
+#define DIR_ATTRIBUTES_LEN                          (0x1U)
+#define DIR_NTRES_LEN                               (0x1U)
+#define DIR_CRT_TIME_TENTH_LEN                      (0x1U)
+#define DIR_CRT_TIME_LEN                            (0x2U)
+#define DIR_CRT_DATE_LEN                            (0x2U)
+#define DIR_LST_ACC_DATE_LEN                        (0x2U)
+#define DIR_FST_CLUS_HIGH_LEN                       (0x2U)
+#define DIR_WRT_TIME_LEN                            (0x2U)
+#define DIR_WRT_DATE_LEN                            (0x2U)
+#define DIR_FST_CLUS_LOW_LEN                        (0x2U)
+#define DIR_FILE_SIZE_LEN                           (0x4U)
 
 /* Define struct __attribute__ ((__packed__)) Entry Format */
 #define DIR_NUMBER_OF_BYTES_PER_ENTRY               32U
 
 typedef struct __attribute__ ((__packed__)) _ENTRY_FORMAT
 {
-    uint8_t DIR_Name[DIR_NAME_LEN];                   /* 0-7   file name */
-    uint8_t DIR_Ext[DIR_EXTENTION_LEN];               /* 8-10  file name extension */
-    uint8_t DIR_Attr[DIR_ATTRIBUTES_LEN];             /* 11    file attributes */
-    uint8_t DIR_NTRes[DIR_NTRES_LEN];                 /* 12-21 reserved */
-    uint8_t DIR_CrtTimeTenth[DIR_CRT_TIME_TENTH_LEN]; /* 22-23 file time */
-    uint8_t DIR_CrtTime[DIR_CRT_TIME_LEN];            /* 24-25 file date */
-    uint8_t DIR_CrtDate[DIR_CRT_DATE_LEN];            /* 26-27 starting cluster number */
-    uint8_t DIR_LstAccDate[DIR_LST_ACC_DATE_LEN];     /* 28-31 File size (0 for directories) */
-    uint8_t DIR_FstClusHI[DIR_FST_CLUS_HIGH_LEN];     /* 28-31 File size (0 for directories) */
-    uint8_t DIR_WrtTime[DIR_WRT_TIME_LEN];            /* 28-31 File size (0 for directories) */
-    uint8_t DIR_WrtDate[DIR_WRT_DATE_LEN];            /* 28-31 File size (0 for directories) */
-    uint8_t DIR_FstClusLO[DIR_FST_CLUS_LOW_LEN];      /* 28-31 File size (0 for directories) */
-    uint8_t DIR_FileSize[DIR_FILE_SIZE_LEN];          /* 28-31 File size (0 for directories) */
+    uint8_t DIR_Name[DIR_NAME_LEN];                   /*offset 0-8      Short file name (SFN) of the object. */
+    uint8_t DIR_Ext[DIR_EXTENTION_LEN];               /*offset 8-10     File name extension */
+    uint8_t DIR_Attr[DIR_ATTRIBUTES_LEN];             /*offset 11 	    File attribute in combination of following flags. Upper 2 bits are reserved and must be zero.
+                                                                        0x01: ATTR_READ_ONLY (Read-only)
+                                                                        0x02: ATTR_HIDDEN (Hidden)
+                                                                        0x04: ATTR_SYSTEM (System)
+                                                                        0x08: ATTR_VOLUME_ID (Volume label)
+                                                                        0x10: ATTR_DIRECTORY (Directory)
+                                                                        0x20: ATTR_ARCHIVE (Archive)
+                                                                        0x0F: ATTR_LONG_FILE_NAME (LFN entry) */
+    uint8_t DIR_NTRes[DIR_NTRES_LEN];                 /*offset 12 	    Optional flags that indicates case information of the SFN.
+                                                                        0x08: Every alphabet in the body is low-case.
+                                                                        0x10: Every alphabet in the extensiton is low-case. */
+    uint8_t DIR_CrtTimeTenth[DIR_CRT_TIME_TENTH_LEN]; /*offset 13	    Optional sub-second information corresponds to DIR_CrtTime. The time resolution of DIR_CrtTime is 2 seconds, so that this field gives a count of sub-second and its valid value range is from 0 to 199 in unit of 10 miliseconds. 
+                                                                        If not supported, set zero and do not change afterwards. */
+    uint8_t DIR_CrtTime[DIR_CRT_TIME_LEN];            /*offset 14-15    Optional file creation time. If not supported, set zero and do not change afterwards. */
+    uint8_t DIR_CrtDate[DIR_CRT_DATE_LEN];            /*offset 16-17    Optional file creation date. If not supported, set zero and do not change afterwards. */
+    uint8_t DIR_LstAccDate[DIR_LST_ACC_DATE_LEN];     /*offset 18-19    Optional last accesse date. There is no time information about last accesse time, so that the resolution of last accesse time is 1 day. 
+                                                                        If not supported, set zero and do not change afterwards. */
+    uint8_t DIR_FstClusHI[DIR_FST_CLUS_HIGH_LEN];     /*offset 20-21    Upeer part of cluster number. Always zero on the FAT12/16 volume. See DIR_FstClusLO. */
+    uint8_t DIR_WrtTime[DIR_WRT_TIME_LEN];            /*offset 22-23    Last time when any change is made to the file (typically on closeing). */
+    uint8_t DIR_WrtDate[DIR_WRT_DATE_LEN];            /*offset 24-25    Last data when any change is made to the file (typically on closeing). */
+    uint8_t DIR_FstClusLO[DIR_FST_CLUS_LOW_LEN];      /*offset 26-27    Lower part of cluster number. When the file size is zero, no cluster is assigned and this item must be zero. Always an valid value if it is a directory. */
+    uint8_t DIR_FileSize[DIR_FILE_SIZE_LEN];          /*offset 28-31    Size of the file in unit of byte. Not used when it is a directroy and the value must be always zero. */
 } FATFS_EntryFormat_t;
 
 
@@ -355,11 +367,29 @@ typedef enum _FATFS_TYPES
 
 #define FATFS_CAL_SECTOR_INDEX(x)   ((x) >> 4U) /* Calculate index sector of root directory */
 
+/* Define Struct Data Type */
+typedef struct DATA
+{
+    uint32_t DATA_SubDir;
+    uint32_t DATA_Num;
+    uint8_t  DATA_FileName[8];
+	uint8_t  DATA_Ext[3];  
+    uint8_t  DATA_Attr;
+    uint16_t DATA_CrtHour;
+    uint16_t DATA_CrtMin;
+    uint16_t DATA_CrtSec;
+    uint16_t DATA_CrtDate;
+    uint16_t DATA_CrtMonth;
+    uint16_t DATA_CrtYear;
+    uint16_t DATA_FstClusLO;
+    uint32_t DATA_FileSize;
+} LIST_Data_t;
+
 /*** Function Prototype */
 /* This function is read FAT files */
 int32_t FATFS_InitFile();
 /* This function is read directory entry*/
-int32_t FATFS_readDirectory(LIST_Data_t * ListData, uint32_t * numOfEntryData, bool isRoot);
+int32_t FATFS_readDataEntry(Node ** headNode, LIST_Data_t * ListData, bool isRoot);
 /* This function is to read a file in FAT12 files */
 int32_t FATFS_readFile(uint8_t * buff, uint32_t entryOfCLuster);
 

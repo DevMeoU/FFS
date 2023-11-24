@@ -32,7 +32,7 @@ int32_t APPMIDW_MenuInit(const char *const filePath)
     bool readFile = false;
     Node * NodePath = NULL;
     Node * RootDataPath = NULL;
-    LIST_Data_t RootDataList[100][100];
+    LIST_Data_t RootDataList[100];
 
     returnValue = HAL_FileInit(filePath);
     APPMIDW_Assert(returnValue, "File initilization fail.", "File initilization success.");
@@ -41,14 +41,15 @@ int32_t APPMIDW_MenuInit(const char *const filePath)
     APPMIDW_Assert(returnValue, NULL, NULL);
 MAIN_RT:
 
-    FATFS_readDirectory(* RootDataList, &numOfRootDataEntry, true);
-    Link_addLastNode(&RootDataPath, RootDataList[0]);
+    FATFS_readDataEntry(&RootDataPath, RootDataList, true);
+    
     CLS
     TITLE_MENU
 
-    for(i = 0; i < numOfRootDataEntry; i++) {
-        APPMIDW_MenuInfo(RootDataList[0][i], true);
+    for(i = 0; i < RootDataPath->data[1]; i++) {
+        APPMIDW_MenuInfo(RootDataList[i], true);
     }
+#if 0
 
     while (1)
     {
@@ -66,7 +67,6 @@ MAIN_RT:
         // FATFS_readDirectory(* RootDataList, &numOfRootDataEntry, false);
     }
 
-#if 0
             // DataIndicate = NodeData;
     // Node *Element = NULL;
     // Node *Temp = NULL;
@@ -165,29 +165,29 @@ static int32_t APPMIDW_MenuReadSubDir(Node *NodeData)
     Node *DataIndicate = NULL;
     Element->next = NULL;                 /* Entry Root */
     // FATFS_readDirectory(&Element, false); /* read entry subDir */
-    if ((Element->data->DATA_SubDir == 2) && (Element->next->data->DATA_SubDir == 1))
-    {
-        Element = Element->next->next;
-    }
+    // if ((Element->data->DATA_SubDir == 2) && (Element->next->data->DATA_SubDir == 1))
+    // {
+    //     Element = Element->next->next;
+    // }
     DataIndicate = Element;
     /* print sub entry info */
     CLS
         TITLE_MENU while (DataIndicate != NULL)
     {
-        if (DataIndicate->data->DATA_SubDir == 2)
-        {
+        // if (DataIndicate->data->DATA_SubDir == 2)
+        // {
 
-            while ((DataIndicate != NULL) && (DataIndicate->data->DATA_SubDir != 1))
-            {
-                // APPMIDW_MenuInfo(*DataIndicate);
-                InputUser++;
-                DataIndicate = DataIndicate->next;
-            }
-        }
-        else
-        {
-            DataIndicate = DataIndicate->next;
-        }
+        //     while ((DataIndicate != NULL) && (DataIndicate->data->DATA_SubDir != 1))
+        //     {
+        //         // APPMIDW_MenuInfo(*DataIndicate);
+        //         InputUser++;
+        //         DataIndicate = DataIndicate->next;
+        //     }
+        // }
+        // else
+        // {
+        //     DataIndicate = DataIndicate->next;
+        // }
     }
     return InputUser;
 }
@@ -204,7 +204,6 @@ static int32_t APPMIDW_MenuReadFile(LIST_Data_t * DataList, uint32_t * InputUser
         NextClus = FATFS_readFile(text, NextClus);
         for (int i = 0; i < sizeof(text); i++)
             printf("%c", text[i]);
-        printf("FATFS_readFile(text, NextClus): %d\n", FATFS_readFile(text, NextClus));
     } while (FATFS_readFile(text, NextClus) != -1);
     return retVal;
 }
