@@ -6,7 +6,7 @@
 
 /** Struct */
 typedef struct Node{
-    uint32_t * data; /* [0]: start cluster, [1]: entry data of cluster */
+    uint32_t data[2]; /* [0]: start cluster, [1]: entry data of cluster */
     struct Node * next;
 } Node;
 

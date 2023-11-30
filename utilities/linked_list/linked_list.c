@@ -10,10 +10,10 @@
 void Link_addLastNode(Node ** headNode, uint32_t * newData){
     /* 1. allocate node */
 	Node * newNode = (Node *)malloc(sizeof(Node));
-	Node * lastNode = headNode;  /* used in step 5*/
+	Node * lastNode = (* headNode);  /* used in step 5*/
 	
 	/* 2. put in the data  */
-    newNode->data  = newData;
+    memcpy(newNode->data, newData, sizeof(newData));
 
 	/* 3. This new node is going to be the last node, so make next of it as NULL*/
     newNode->next = NULL;
@@ -38,7 +38,7 @@ int32_t Link_findNode(Node * phead, uint32_t index)
 {
     int32_t retVal = 0;
     while (phead != NULL) {
-        if (phead->data == index)
+        if (phead->data[1] == index)
         {
             return retVal;
         }    

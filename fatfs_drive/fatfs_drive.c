@@ -25,7 +25,7 @@ static void FATFS_assignData(FATFS_EntryFormat_t * DataEntry, LIST_Data_t * List
 static void FATFS_Log(uint8_t * buff, uint32_t size);
 
 /* g_FatTypes Return Value in range [-1,0,1,2]*/
-static uint32_t number = 0U;
+static uint32_t numOfRootEntry = 0U;
 static uint8_t s_RawData[FATFS_BYTES_PER_SECTOR];
 FATFS_FatTypes_t g_FatType = ERROR;
 FATFS_BootData_t g_BootData =
@@ -154,7 +154,7 @@ void FATFS_assignData(FATFS_EntryFormat_t * DataEntry, LIST_Data_t * ListData) {
     uint32_t timeAfterReverse = 0U;
 
     ListData->DATA_SubDir = 0;
-    ListData->DATA_Num = number;
+    ListData->DATA_Num = numOfRootEntry + 1;
 
     memcpy(ListData->DATA_FileName, DataEntry->DIR_Name, DIR_NAME_LEN);
     memcpy(ListData->DATA_Ext, DataEntry->DIR_Ext, DIR_EXTENTION_LEN);
@@ -169,86 +169,49 @@ void FATFS_assignData(FATFS_EntryFormat_t * DataEntry, LIST_Data_t * ListData) {
     ListData->DATA_CrtYear = FATFS_CALC_YEAR(dateAfterReverse) + 1980;
     ListData->DATA_FstClusLO = FATFS_reverseMax4Byte(DataEntry->DIR_FstClusLO, DIR_FST_CLUS_LOW_LEN);
     ListData->DATA_FileSize = FATFS_reverseMax4Byte(DataEntry->DIR_FileSize, DIR_FILE_SIZE_LEN);
-    number++;
+    numOfRootEntry++;
 }
 
-int32_t FATFS_readDataEntry(Node ** headNode, LIST_Data_t * ListData, bool isRoot)
+void FATFS_readRootDataEntry(Node ** headNode, LIST_Data_t * ListData)
 {
-    int32_t retVal = -1U;
     uint32_t i = 0U;
     uint32_t entrySectorPos = 0U;
-    uint32_t indexStartClus = 0U;
-    uint32_t nodeData[2];
-    
+    uint32_t nodeData[2] = {0U, 0U};
+
     /* allocation data entry */
     FATFS_EntryFormat_t * DataEntry = NULL;
 
-    do
+    /* check from entry 0 to max root entry */
+    for (i = 0U; i < g_BootData.RootEntCnt; i++)
     {
-        /* check from entry 0 to max root entry */
-        for (i = 0U; i < g_BootData.RootEntCnt; i++)
-        {
-            /* read root sector */
-            if (isRoot == true)
-            {
-                indexStartClus = g_BootData.FirstRootClus;
-                entrySectorPos = g_BootData.FirstRootClus + FATFS_CAL_SECTOR_INDEX(i);
-                
-                if(!FATFS_GET_INDEX_ENTRYS(i))
-                    HAL_ReadSector(entrySectorPos, s_RawData);
+        entrySectorPos = g_BootData.FirstRootClus + FATFS_CAL_SECTOR_INDEX(i);
+        
+        if(!FATFS_GET_INDEX_ENTRYS(i))
+            HAL_ReadSector(entrySectorPos, s_RawData);
 
-                DataEntry = (FATFS_EntryFormat_t *)(s_RawData + (FATFS_GET_INDEX_ENTRYS(i) * FATFS_BYTES_OF_ENTRY));
+        DataEntry = (FATFS_EntryFormat_t *)(s_RawData + (FATFS_GET_INDEX_ENTRYS(i) * FATFS_BYTES_OF_ENTRY));
 
 #if (FATFS_DEBUG_MODE == FATFS_ON)
-                FATFS_Log(s_RawData, 512);
-                FATFS_Log((uint8_t *)DataEntry, FATFS_BYTES_OF_ENTRY);
-                printf("entrySectorPos = %d\n", entrySectorPos);
-                printf("\ni = %d\n\n", i);
+        FATFS_Log(s_RawData, 512);
+        FATFS_Log((uint8_t *)DataEntry, FATFS_BYTES_OF_ENTRY);
+        printf("entrySectorPos = %d\n", entrySectorPos);
+        printf("\ni = %d\n\n", i);
 #endif
-                /* get entry valid */
-                if ((FATFS_checkAttribute(DataEntry) == 0U) && (FATFS_checkFileName(DataEntry) == 0U))
-                {
-                    
-                    FATFS_assignData(DataEntry, &ListData[number]);
+        /* get entry valid */
+        if ((FATFS_checkAttribute(DataEntry) == 0U) && (FATFS_checkFileName(DataEntry) == 0U))
+        {
+            FATFS_assignData(DataEntry, (LIST_Data_t *)(ListData + numOfRootEntry));
 
-                    /* add note */
-                    nodeData[0] = indexStartClus;
-                    nodeData[1] = number;
-                }
-            }
-            else
-            {
-                entrySectorPos = (FATFS_readFATtable(ListData, &indexStartClus) << 9) >> 5;
-                printf("entrySectorPos: %d\n", entrySectorPos);
-                indexStartClus = (g_BootData.FirstDataClus - 2) + ListData->DATA_FstClusLO;
-                printf("indexStartClus: %d\n", indexStartClus);
-                
-                HAL_ReadSector(entrySectorPos, s_RawData);
-
-                DataEntry = (FATFS_EntryFormat_t *)(s_RawData + (i * FATFS_BYTES_OF_ENTRY));
-
-                if((DataEntry->DIR_Name[0] == FATFS_SUB_PATH) && (DataEntry->DIR_Name[1] == FATFS_SUB_PATH))
-                {
-                    number++; /* calcular number of DataEntry */
-                    ListData->DATA_SubDir = 2;
-                    ListData->DATA_Num = number;
-                    ListData->DATA_FstClusLO = FATFS_reverseMax4Byte(DataEntry->DIR_FstClusLO, 2);
-                }
-                else if(DataEntry->DIR_Name[0] == FATFS_SUB_PATH)
-                {
-                    number++; /* calcular number of DataEntry */
-                    ListData->DATA_SubDir = 1;
-                    ListData->DATA_Num = number;
-                    ListData->DATA_FstClusLO = FATFS_reverseMax4Byte(DataEntry->DIR_FstClusLO, 2);
-                }
-            }
+            nodeData[0] = g_BootData.FirstRootClus;
+            nodeData[1] = numOfRootEntry;
         }
-        isRoot = false;
-    } while (retVal != FATFS_12_EOC && retVal != -1 && isRoot != false);
-
+    }
     Link_addLastNode(headNode, nodeData);
+}
 
-    return number;
+void FATFS_readSubDataEntry(Node ** headNode, LIST_Data_t * ListData)
+{
+    int32_t retVal = -1U;
 }
 
 /* This function is to read a file in FAT12 files */

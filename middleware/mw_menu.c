@@ -39,9 +39,13 @@ int32_t APPMIDW_MenuInit(const char *const filePath)
 
     returnValue = FATFS_InitFile();
     APPMIDW_Assert(returnValue, NULL, NULL);
-MAIN_RT:
 
-    FATFS_readDataEntry(&RootDataPath, RootDataList, true);
+    /**
+     * *******************************************************************************************
+     *  Read root data entry.
+     * *******************************************************************************************
+     */
+    FATFS_readRootDataEntry(&RootDataPath, RootDataList);
     
     CLS
     TITLE_MENU
@@ -49,111 +53,12 @@ MAIN_RT:
     for(i = 0; i < RootDataPath->data[1]; i++) {
         APPMIDW_MenuInfo(RootDataList[i], true);
     }
-#if 0
-
-    while (1)
-    {
-        inputUser = numOfRootDataEntry;
-        inputUser = APPMIDW_MenuInputNumberByUser(inputUser);
-
-        if((RootDataList[0][inputUser].DATA_Attr == ATT_DIRECTORY) && (RootDataList[0][inputUser].DATA_SubDir == 0))
-        {
-            // APPMIDW_MenuReadSubDir
-        }
-        else if((RootDataList[0][inputUser].DATA_Attr != ATT_DIRECTORY) && (RootDataList[0][inputUser].DATA_SubDir == 0))
-        {
-            APPMIDW_MenuReadFile(RootDataList[0], &inputUser);
-        }
-        // FATFS_readDirectory(* RootDataList, &numOfRootDataEntry, false);
-    }
-
-            // DataIndicate = NodeData;
-    // Node *Element = NULL;
-    // Node *Temp = NULL;
-    /* print Node root */
-    do
-    {
-        APPMIDW_MenuInfo(NULL, RootDataList, true);
-        maxNode++;
-        RootData = RootData->next;
-    } while (RootData != NULL);
-    inputUser = maxNode;
-    Element = NodeData;
-    while(1)
-    {
-        Temp = Element;
-        while(Temp != NULL)
-        {
-            Temp = Temp->next;
-            inputUser++;
-        }
-
-        inputUser = APPMIDW_MenuInputNumberByUser(inputUser);
-        do{
-            if((Element == NULL) && (inputUser == temp))
-                goto MAIN_RT;
-            else if(Element == NULL)
-                break;
-            if(inputUser == Element->data.DATA_Num)
-            {
-                if(Element->data.DATA_SubDir == 2)
-                {
-                    if(Element->data.DATA_FstClusLO == 0)
-                    {
-                        goto MAIN_RT;
-                    }
-                    else
-                    {
-                        while(Element != NULL)
-                        {
-                            if(Element->data.DATA_SubDir != 2)
-                            {
-                                Element = Element->next;
-                            }
-                            else
-                            {
-                                APPMIDW_MenuReadSubDir(Element);
-                                for(i = 0; i < inputUser; i++)
-                                    Element = Element->next;
-                                    break;
-                            }
-                        }
-                        break;
-                    }
-                }
-                if((Element->data.DATA_Attr == ATT_DIRECTORY) && (Element->data.DATA_SubDir == 0))
-                    APPMIDW_MenuReadSubDir(Element);
-                else if((Element->data.DATA_Attr != ATT_DIRECTORY) && (Element->data.DATA_SubDir == 0))
-                {
-                    APPMIDW_MenuReadFile(Element, &inputUserFile);
-                    readFile = true;
-                    if(readFile == true)
-                    {
-                        do
-                        {
-                           printf("\n\tPlease input '0 from the keyboard to back: ");
-                           scanf("%d", &inputUserFile);
-                        } while(inputUserFile != 0);
-                        if(Element->data.DATA_SubDir != 1)
-                            goto MAIN_RT;
-                        else{
-
-                        }
-                    }
-                }
-                break;
-            }
-            else
-            {
-                if(Element->next == NULL)
-                {
-                    temp = Element->data.DATA_Num;
-                }
-                Element = Element->next;
-            }
-        } while(inputUser != 0);
-    }
-#endif
+    /**
+     * *******************************************************************************************
+     * User selection
+     * *******************************************************************************************
+     */
+    inputUser = APPMIDW_MenuInputNumberByUser(RootDataPath->data[1]);
 EXIT_RT:
     return 0;
 }
