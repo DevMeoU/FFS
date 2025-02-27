@@ -1,0 +1,35 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"type": "cppbuild",
+			"label": "Build FSS project",
+			"command": "C:\\cygwin64\\bin\\gcc.exe",
+			"args": [
+				"-fdiagnostics-color=always",
+				"-g",
+                "${workspaceFolder}/application/app_main.c",
+                "${workspaceFolder}/middleware/mw_menu.c",
+                "${workspaceFolder}/fatfs_drive/fatfs_drive.c",
+                "${workspaceFolder}/hal/file_hal.c",
+                "${workspaceFolder}/utilities/linked_list/linked_list.c",
+                "${workspaceFolder}/utilities/timer/timer.c",
+				"-o",
+				"${fileDirname}\\..\\build\\${fileBasenameNoExtension}.exe",
+                "-I\"${workspaceFolder}/application\"",
+                "-I\"${workspaceFolder}/middleware\"",
+                "-I\"${workspaceFolder}/fatfs_drive\"",
+                "-I\"${workspaceFolder}/hal\"",
+                "-I\"${workspaceFolder}/utilities\""
+			],
+			"options": {
+				"cwd": "${fileDirname}"
+			},
+			"problemMatcher": [
+				"$gcc"
+			],
+			"group": "build",
+			"detail": "compiler: C:\\cygwin64\\bin\\gcc.exe"
+		}
+	]
+}
